@@ -26,7 +26,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "WitchCraft - 赛博女巫日记",
+      "shortName": "WitchCraft",
+      "description": "探寻你的魔法本源，找到属于你的女巫之路",
+      "themeColor": "#0D0618",
+      "backgroundColor": "#0D0618",
+      "startUrl": "/",
+      "scope": "/",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "zh-CN"
     },
     "plugins": [
       "expo-router",

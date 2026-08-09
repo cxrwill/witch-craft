@@ -1,0 +1,17 @@
+{
+  "name": "WitchCraft - 赛博女巫日记",
+  "short_name": "WitchCraft",
+  "description": "探寻你的魔法本源，找到属于你的女巫之路",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0D0618",
+  "theme_color": "#0D0618",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
