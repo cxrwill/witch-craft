@@ -26,10 +26,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro",
-      "experiments": {
-        "basePath": "/witch-craft"
-      }
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
