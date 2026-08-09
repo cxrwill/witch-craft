@@ -17,16 +17,23 @@ const mobileMeta = `
 `;
 
 const touchCSS = `
-  html,body{height:100%;width:100%;margin:0;padding:0;background-color:#0D0618}
-  body{overflow:hidden;position:fixed;top:0;left:0;right:0;bottom:0;-webkit-overflow-scrolling:touch}
-  *{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+  html,body{height:100%;width:100%;margin:0;padding:0;background-color:#0D0618;overflow:hidden}
+  #root{display:flex;flex-direction:column;height:100%;min-height:100%}
+  *{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
   input,textarea{-webkit-user-select:auto;user-select:auto}
   html{-webkit-text-size-adjust:100%;touch-action:manipulation;overscroll-behavior:none}
-  @supports(padding:env(safe-area-inset-top)){body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}}
+  body{overscroll-behavior:none;-webkit-overflow-scrolling:touch}
 `;
 
 const swScript = `
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){})}
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(r){r.unregister()});
+    });
+    window.addEventListener('load',function(){
+      navigator.serviceWorker.register('/sw.js?v=2').catch(function(){});
+    });
+  }
 `;
 
 // Replace default viewport
