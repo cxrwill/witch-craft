@@ -74,6 +74,14 @@ html = html.replace(
 fs.writeFileSync(indexPath, html, 'utf-8');
 console.log('✓ Mobile web optimizations applied');
 
+// Fix absolute paths for GitHub Pages subdirectory deployment
+html = html.replace(/href="\/_expo/g, 'href="_expo');
+html = html.replace(/src="\/_expo/g, 'src="_expo');
+html = html.replace(/href="\/assets/g, 'href="assets');
+html = html.replace(/src="\/assets/g, 'src="assets');
+fs.writeFileSync(indexPath, html, 'utf-8');
+console.log('✓ Fixed paths for GitHub Pages subdirectory');
+
 // Copy static files from public to dist
 const publicDir = path.join(__dirname, '..', 'public');
 if (fs.existsSync(publicDir)) {
