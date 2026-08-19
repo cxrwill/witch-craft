@@ -84,10 +84,12 @@ const spaFallback = `
 <script>
 (function() {
   var path = window.location.pathname;
-  // If on a deep link path, redirect to home (the root of the app)
-  // This prevents "Unmatched Route" errors when users bookmark or share deep links
-  if (path !== '/' && !path.includes('_expo') && !path.includes('assets') && !path.includes('.') && !path.includes('favicon')) {
-    window.location.href = '/witch-craft/';
+  // Detect if we're on GitHub Pages subdirectory
+  var isGitHubPages = path.indexOf('/witch-craft/') === 0 || path.indexOf('/cxiwill/') === 0;
+  // Only redirect if we're on a deep link, not on the home page
+  var homePath = isGitHubPages ? '/witch-craft/' : '/';
+  if (path !== homePath && !path.includes('_expo') && !path.includes('assets') && !path.includes('.') && !path.includes('favicon')) {
+    window.location.href = homePath;
   }
 })();
 </script>
