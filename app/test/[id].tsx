@@ -18,9 +18,9 @@ const QUESTION_ICONS: IconName[] = [
 // Persist scores across navigation
 const SCORE_STORAGE_KEY = '@witch_test_scores';
 
-function loadScores(): Record<WitchTypeId, number> {
+async function loadScores(): Promise<Record<WitchTypeId, number>> {
   try {
-    const raw = AsyncStorage.getItem(SCORE_STORAGE_KEY);
+    const raw = await AsyncStorage.getItem(SCORE_STORAGE_KEY);
     return raw ? JSON.parse(raw) : {} as Record<WitchTypeId, number>;
   } catch { return {} as Record<WitchTypeId, number>; }
 }
@@ -46,13 +46,14 @@ export default function TestQuestionScreen() {
 
   // Load persisted scores
   useEffect(() => {
-    const saved = loadScores();
-    setScores(await saved);
-    // Restore selection for this question
-    const savedSelection = AsyncStorage.getItem(`@witch_test_q_${questionIndex}`);
-    if (savedSelection !== null) {
-      setSelectedOption(parseInt(savedSelection, 10));
-    }
+    (async () => {
+      const saved = await loadScores();
+      setScores(saved);
+      const savedSelection = await AsyncStorage.getItem(`@witch_test_q_${questionIndex}`);
+      if (savedSelection !== null) {
+        setSelectedOption(parseInt(savedSelection, 10));
+      }
+    })();
   }, [questionIndex]);
 
   // Animate in
