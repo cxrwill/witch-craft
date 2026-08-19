@@ -13,7 +13,7 @@ const mobileMeta = `
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="WitchCraft">
   <meta name="format-detection" content="telephone=no">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
 `;
 
 const touchCSS = `
@@ -31,7 +31,7 @@ const swScript = `
       regs.forEach(function(r){r.unregister()});
     });
     window.addEventListener('load',function(){
-      navigator.serviceWorker.register('/sw.js?v=2').catch(function(){});
+      navigator.serviceWorker.register('sw.js?v=2').catch(function(){});
     });
   }
 `;
@@ -62,7 +62,7 @@ html = html.replace(
 // Add favicon
 html = html.replace(
   '<link rel="manifest"',
-  '<link rel="icon" href="/favicon.ico">\n  <link rel="manifest"'
+  '<link rel="icon" href="favicon.ico">\n  <link rel="manifest"'
 );
 
 // Add service worker before </body>

@@ -23,15 +23,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npx expo export --platform web
-      - name: Fix paths for GitHub Pages
-        run: |
-          sed -i 's|href="/favicon.ico"|href="favicon.ico"|g' dist/index.html
-          sed -i 's|href="/_expo|href="_expo|g' dist/index.html
-          sed -i 's|src="/_expo|src="_expo|g' dist/index.html
-          sed -i 's|href="/manifest.json"|href="manifest.json"|g' dist/index.html
-          sed -i 's|href="/sw.js"|href="sw.js"|g' dist/index.html
-          sed -i 's|href="/assets|href="assets|g' dist/index.html
+      - run: npx expo export --platform web && npm run postexport
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
