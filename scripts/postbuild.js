@@ -36,6 +36,18 @@ const swScript = `
   }
 `;
 
+const spaFallback = `
+<script>
+(function() {
+  var p = window.location.pathname;
+  // Only redirect if on a deep link path in GitHub Pages subdirectory
+  if (p.indexOf('/witch-craft/') === 0 && p !== '/witch-craft/') {
+    window.location.href = '/witch-craft/';
+  }
+})();
+</script>
+`;
+
 // Replace default viewport
 html = html.replace(
   /<meta name="viewport"[^>]*>/,
@@ -71,33 +83,20 @@ html = html.replace(
   `<script>${swScript}</script>\n</body>`
 );
 
-fs.writeFileSync(indexPath, html, 'utf-8');
-console.log('✓ Mobile web optimizations applied');
+// Add SPA fallback for GitHub Pages deep links
+html = html.replace('</head>', spaFallback + '</head>');
 
 // Fix absolute paths for GitHub Pages subdirectory deployment
 html = html.replace(/href="\/_expo/g, 'href="_expo');
 html = html.replace(/src="\/_expo/g, 'src="_expo');
 html = html.replace(/href="\/assets/g, 'href="assets');
 html = html.replace(/src="\/assets/g, 'src="assets');
-// Add SPA fallback for deep linking on GitHub Pages
-const spaFallback = `
-<script>
-(function() {
-  var path = window.location.pathname;
-  // Detect if we're on GitHub Pages subdirectory
-  var isGitHubPages = path.indexOf('/witch-craft/') === 0 || path.indexOf('/cxiwill/') === 0;
-  // Only redirect if we're on a deep link, not on the home page
-  var homePath = isGitHubPages ? '/witch-craft/' : '/';
-  if (path !== homePath && !path.includes('_expo') && !path.includes('assets') && !path.includes('.') && !path.includes('favicon')) {
-    window.location.href = homePath;
-  }
-})();
-</script>
-`;
-html = html.replace('</head>', spaFallback + '</head>');
+html = html.replace(/href="\/favicon/g, 'href="favicon');
+html = html.replace(/href="\/manifest/g, 'href="manifest');
+html = html.replace(/href="\/sw/g, 'href="sw');
 
 fs.writeFileSync(indexPath, html, 'utf-8');
-console.log('✓ Fixed paths and added SPA fallback');
+console.log('✓ Web export optimized for GitHub Pages');
 
 // Copy static files from public to dist
 const publicDir = path.join(__dirname, '..', 'public');
