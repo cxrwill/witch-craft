@@ -57,6 +57,7 @@ const DIVINATION_KEY = '@witch_divination_count';
 const RUNE_DIVINATION_KEY = '@witch_rune_count';
 const CELTIC_USED_KEY = '@witch_celtic_used';
 const THREE_RUNE_USED_KEY = '@witch_three_rune_used';
+const SIGN_IN_KEY = '@witch_sign_in'; // 'YYYY-MM-DD' -> { date, streak }
 
 const { width: SW } = Dimensions.get('window');
 
@@ -65,8 +66,12 @@ export default function HomeScreen() {
   const [showDailyCard, setShowDailyCard] = useState(false);
   const [energyLevel, setEnergyLevel] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [hasSignedInToday, setHasSignedInToday] = useState(false);
+  const [signInHistory, setSignInHistory] = useState<string[]>([]);
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
   const [showAllAchievements, setShowAllAchievements] = useState(false);
+  const [isSigning, setIsSigning] = useState(false);
+  const signAnim = useRef(new Animated.Value(0)).current;
   const breatheAnim = useRef(new Animated.Value(0.8)).current;
   const glowAnim = useRef(new Animated.Value(0.3)).current;
   const energyAnim = useRef(new Animated.Value(0)).current;
@@ -167,6 +172,34 @@ export default function HomeScreen() {
     };
     loadData();
   }, []);
+
+  // Load sign-in history
+  useEffect(() => {
+    const loadSignIn = async () => {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      const raw = await AsyncStorage.getItem(SIGN_IN_KEY);
+      if (raw) {
+        const list: string[] = JSON.parse(raw);
+        setSignInHistory(list);
+        setHasSignedInToday(list.includes(todayStr));
+      }
+    };
+    loadSignIn();
+  }, []);
+
+  const handleSignIn = async () => {
+    if (hasSignedInToday || isSigning) return;
+    setIsSigning(true);
+    Animated.timing(signAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const list = [...signInHistory, todayStr];
+    await AsyncStorage.setItem(SIGN_IN_KEY, JSON.stringify(list));
+    setSignInHistory(list);
+    setHasSignedInToday(true);
+    setTimeout(() => setIsSigning(false), 800);
+  };
 
   // Flame animation for streak
   useEffect(() => {
@@ -301,6 +334,77 @@ export default function HomeScreen() {
             <Text style={{ color: p.muted, fontSize: 8, letterSpacing: 1 }}>{streak >= 7 ? '七日圆满' : streak >= 3 ? '连续签到' : '每日签到'}</Text>
           </View>
         </View>
+
+        {/* Sign-in button */}
+        <Pressable
+          onPress={handleSignIn}
+          disabled={hasSignedInToday || isSigning}
+          style={({ pressed }) => ({
+            borderRadius: 14,
+            paddingVertical: 16,
+            paddingHorizontal: 24,
+            backgroundColor: hasSignedInToday ? 'rgba(201,168,76,0.05)' : pressed ? `${p.accent}15` : `${p.accent}08`,
+            borderWidth: 1,
+            borderColor: hasSignedInToday ? `${p.accent}20` : `${p.accent}40`,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            marginBottom: 16,
+            opacity: hasSignedInToday ? 0.7 : 1,
+          })}
+        >
+          <Animated.View style={{ transform: [{ scale: signAnim }] }}>
+            <Icon
+              name={hasSignedInToday ? 'check' : 'sparkle'}
+              size={20}
+              color={hasSignedInToday ? `${p.accent}60` : p.accent}
+              strokeWidth={1.5}
+              fill={hasSignedInToday}
+            />
+          </Animated.View>
+          <Text style={{
+            color: hasSignedInToday ? `${p.accent}60` : p.accent,
+            fontSize: 15,
+            fontFamily: 'serif',
+            letterSpacing: 3,
+          }}>
+            {hasSignedInToday ? `今日已签到 · 第${signInHistory.length}天` : '今日签到'}
+          </Text>
+        </Pressable>
+
+        {/* Sign-in calendar strip */}
+        {signInHistory.length > 0 && (
+          <View style={{ borderRadius: 14, padding: 14, backgroundColor: p.surface, borderWidth: 1, borderColor: `${p.primary}40`, marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <Icon name="calendar" size={10} color={p.muted} strokeWidth={1.2} />
+              <Text style={{ color: p.muted, fontSize: 10, letterSpacing: 2 }}>签到记录</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: `${p.accent}08` }} />
+              <Text style={{ color: p.accent, fontSize: 10, fontFamily: 'serif' }}>{signInHistory.length} 天</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 4 }}>
+              {signInHistory.slice(-14).map((date, i) => {
+                const d = new Date(date);
+                const isToday = date === new Date().toISOString().split('T')[0];
+                return (
+                  <View key={i} style={{
+                    alignItems: 'center',
+                    paddingHorizontal: 6,
+                    paddingVertical: 6,
+                    borderRadius: 8,
+                    backgroundColor: isToday ? `${p.accent}12` : `${p.primary}20`,
+                    borderWidth: 1,
+                    borderColor: isToday ? `${p.accent}30` : `${p.primary}30`,
+                  }}>
+                    <Text style={{ color: isToday ? p.accent : p.muted, fontSize: 9, fontFamily: 'serif' }}>
+                      {d.getMonth() + 1}/{d.getDate()}
+                    </Text>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Moon Phase Calendar Strip */}
         <View style={{ marginBottom: 16 }}>
