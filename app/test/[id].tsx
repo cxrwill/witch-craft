@@ -18,9 +18,9 @@ const QUESTION_ICONS: IconName[] = [
 // Persist scores across navigation
 const SCORE_STORAGE_KEY = '@witch_test_scores';
 
-async function loadScores(): Promise<Record<WitchTypeId, number>> {
+function loadScores(): Record<WitchTypeId, number> {
   try {
-    const raw = await AsyncStorage.getItem(SCORE_STORAGE_KEY);
+    const raw = AsyncStorage.getItem(SCORE_STORAGE_KEY);
     return raw ? JSON.parse(raw) : {} as Record<WitchTypeId, number>;
   } catch { return {} as Record<WitchTypeId, number>; }
 }
