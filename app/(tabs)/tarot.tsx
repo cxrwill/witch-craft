@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Animated, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Pressable, Animated, Dimensions, TextInput, Keyboard } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { ParticleBackground } from '../../src/components/ParticleBackground';
@@ -95,6 +95,82 @@ function generateSynthesis(cards: (TarotCard & { position?: string })[], spread:
   }
 
   return parts.join('\n\n');
+}
+
+// Generate detailed interpretation with question context
+function generateDetailedInterpretation(cards: (TarotCard & { position?: string })[], spread: SpreadType, question: string): string {
+  const majorCount = cards.filter(c => c.type === 'major').length;
+  const reversedCount = cards.filter(c => c.reversed).length;
+  const suitCounts: Record<string, number> = {};
+  cards.forEach(c => { if (c.suit) suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1; });
+  const dominantSuit = Object.entries(suitCounts).sort((a, b) => b[1] - a[1])[0];
+
+  const questionPrefix = question ? `你问：「${question}」\n\n` : '';
+  let parts: string[] = [];
+
+  // Opening
+  if (cards.length === 1) {
+    const card = cards[0];
+    parts.push(`🌙 你抽到了「${card.name}」${card.reversed ? '（逆位）' : '（正位）'}`);
+    parts.push(card.reversed ? card.meaningReversed : card.meaningUpright);
+  } else if (spread === 'three') {
+    const [past, present, future] = cards;
+    parts.push(`🌙 你的牌阵展开如下：`);
+    parts.push(`\n【过去 · ${past.name}${past.reversed ? '（逆位）' : ''}】`);
+    parts.push(past.reversed ? past.meaningReversed : past.meaningUpright);
+    parts.push(`\n【现在 · ${present.name}${present.reversed ? '（逆位）' : ''}】`);
+    parts.push(present.reversed ? present.meaningReversed : present.meaningUpright);
+    parts.push(`\n【未来 · ${future.name}${future.reversed ? '（逆位）' : ''}】`);
+    parts.push(future.reversed ? future.meaningReversed : future.meaningUpright);
+  } else if (spread === 'celtic') {
+    const positions = ['现状', '挑战', '基础', '过去', '目标', '未来', '自我', '环境', '希望', '结果'];
+    parts.push(`🌙 凯尔特十字展开，十张牌揭示命运的完整轨迹：`);
+    cards.forEach((card, i) => {
+      if (card) {
+        const pos = positions[i] || `位置${i + 1}`;
+        const meaning = card.reversed ? card.meaningReversed : card.meaningUpright;
+        parts.push(`\n【${pos} · ${card.name}${card.reversed ? '（逆位）' : ''}】`);
+        parts.push(meaning.slice(0, 80) + '…');
+      }
+    });
+  } else {
+    cards.forEach((card, i) => {
+      const pos = card.position || `第${i + 1}张`;
+      const meaning = card.reversed ? card.meaningReversed : card.meaningUpright;
+      parts.push(`【${pos} · ${card.name}】${meaning}`);
+    });
+  }
+
+  // Energy assessment
+  parts.push(`\n━━━━━━━━━━━━━━━\n`);
+  if (majorCount >= 2) {
+    parts.push(`✦ 牌阵中出现 ${majorCount} 张大阿尔卡纳牌，暗示这是一个重要的转折时刻，命运的力量正在显现。`);
+  }
+  if (reversedCount >= cards.length / 2) {
+    parts.push(`✦ 逆位牌居多，提示你需要向内审视，当前的阻碍可能来自内在而非外在。`);
+  } else if (reversedCount === 0) {
+    parts.push(`✦ 所有牌均为正位，能量流通顺畅，是行动与推进的好时机。`);
+  }
+  if (dominantSuit && dominantSuit[1] >= 2) {
+    const suitMeanings: Record<string, string> = {
+      wands: '火元素主导——热情、行动与创造力的能量充沛',
+      cups: '水元素主导——情感、直觉与关系是当前的核心主题',
+      swords: '风元素主导——思维、沟通与决断需要你的关注',
+      pentacles: '土元素主导——物质、稳定与实际事务是当下的重心',
+    };
+    parts.push(`✦ ${suitMeanings[dominantSuit[0]] || ''}`);
+  }
+
+  // Actionable advice
+  parts.push(`\n━━━━━━━━━━━━━━━\n`);
+  parts.push(`💫 建议：`);
+  const lastCard = cards[cards.length - 1];
+  if (lastCard) {
+    const advice = lastCard.reversed ? lastCard.meaningReversed : lastCard.meaningUpright;
+    parts.push(advice.slice(0, 100) + '…');
+  }
+
+  return questionPrefix + parts.join('\n\n');
 }
 
 /* ============================
@@ -487,10 +563,16 @@ export default function TarotScreen() {
   const [revealedRunes, setRevealedRunes] = useState<number[]>([]);
   const [isCastingRunes, setIsCastingRunes] = useState(false);
 
+  // Question state
+  const [questionText, setQuestionText] = useState('');
+  const [showQuestionInput, setShowQuestionInput] = useState(false);
+
   const handleSelectSpread = (spread: SpreadType) => {
     setSelectedSpread(spread);
     setDrawnCards([]);
     setRevealedIndices([]);
+    setQuestionText('');
+    setShowQuestionInput(true);
   };
 
   const handleShuffle = useCallback(() => {
@@ -537,6 +619,8 @@ export default function TarotScreen() {
     setSelectedSpread(null);
     setDrawnCards([]);
     setRevealedIndices([]);
+    setQuestionText('');
+    setShowQuestionInput(false);
   };
 
   // Rune casting
@@ -989,20 +1073,50 @@ export default function TarotScreen() {
                     })}
 
                     {/* Synthesis — appears when all cards revealed */}
-                    {revealedIndices.length === drawnCards.length && drawnCards.length > 1 && (
+                    {revealedIndices.length === drawnCards.length && drawnCards.length > 0 && (
                       <View style={{ borderRadius: 16, padding: 18, borderWidth: 1, borderColor: `${accent}30`, backgroundColor: `${primary}20`, marginTop: 4 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                           <Icon name="eye" size={12} color={accent} strokeWidth={1.2} />
                           <Text style={{ color: accent, fontSize: 12, fontFamily: 'serif', letterSpacing: 3 }}>综 合 解 读</Text>
                           <View style={{ flex: 1, height: 1, backgroundColor: `${accent}15` }} />
                         </View>
-                        <Text style={{ color: '#D8D0E8', fontSize: 14, lineHeight: 24, fontStyle: 'italic' }}>
-                          {generateSynthesis(drawnCards, selectedSpread!)}
+
+                        {/* Question input */}
+                        <View style={{ marginBottom: 14 }}>
+                          <Text style={{ color: '#8B7B9B', fontSize: 11, marginBottom: 6, letterSpacing: 1 }}>
+                            你的问题（选填）
+                          </Text>
+                          <TextInput
+                            value={questionText}
+                            onChangeText={setQuestionText}
+                            placeholder="输入你的困惑，让塔罗为你指引..."
+                            placeholderTextColor="#6B5B7B"
+                            style={{
+                              backgroundColor: 'rgba(20,12,35,0.6)',
+                              borderRadius: 10,
+                              padding: 12,
+                              color: '#D8D0E8',
+                              fontSize: 13,
+                              lineHeight: 20,
+                              borderWidth: 1,
+                              borderColor: `${accent}20`,
+                              textAlignVertical: 'top',
+                              minHeight: 60,
+                            }}
+                            multiline
+                            maxLength={200}
+                          />
+                        </View>
+
+                        {/* Detailed interpretation */}
+                        <Text style={{ color: '#D8D0E8', fontSize: 14, lineHeight: 26, fontStyle: 'italic', marginBottom: 14 }}>
+                          {generateDetailedInterpretation(drawnCards, selectedSpread!, questionText)}
                         </Text>
+
                         {/* Keyword cloud from all cards */}
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
-                          {Array.from(new Set(drawnCards.flatMap(c => c.keywords))).slice(0, 8).map((kw, i) => (
-                            <View key={i} style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1, borderColor: `${accent}15`, backgroundColor: `${accent}06` }}>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                          {Array.from(new Set(drawnCards.flatMap(c => c.keywords))).slice(0, 10).map((kw, i) => (
+                            <View key={i} style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: `${accent}15`, backgroundColor: `${accent}06` }}>
                               <Text style={{ fontSize: 10, color: `${accent}60` }}>{kw}</Text>
                             </View>
                           ))}
