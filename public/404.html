@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WitchCraft - 赛博女巫日记</title>
+  <script>
+    // SPA fallback for GitHub Pages subdirectory
+    var path = location.pathname;
+    var base = location.pathname.match(/\/witch-craft/);
+    if (base) {
+      location.href = location.origin + base[0] + '/?redirect=' + encodeURIComponent(location.pathname + location.search);
+    } else {
+      location.href = '/?redirect=' + encodeURIComponent(path + location.search);
+    }
+  </script>
+</head>
+<body>
+  <script>
+    var path = location.pathname;
+    var base = location.pathname.match(/\/witch-craft/);
+    if (base) {
+      location.href = location.origin + base[0] + '/?redirect=' + encodeURIComponent(location.pathname + location.search);
+    } else {
+      location.href = '/?redirect=' + encodeURIComponent(path + location.search);
+    }
+  </script>
+</body>
+</html>
