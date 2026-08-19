@@ -377,7 +377,7 @@ export default function HomeScreen() {
         {signInHistory.length > 0 && (
           <View style={{ borderRadius: 14, padding: 14, backgroundColor: p.surface, borderWidth: 1, borderColor: `${p.primary}40`, marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <Icon name="calendar" size={10} color={p.muted} strokeWidth={1.2} />
+              <Icon name="moon" size={10} color={p.muted} strokeWidth={1.2} />
               <Text style={{ color: p.muted, fontSize: 10, letterSpacing: 2 }}>签到记录</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: `${p.accent}08` }} />
               <Text style={{ color: p.accent, fontSize: 10, fontFamily: 'serif' }}>{signInHistory.length} 天</Text>
