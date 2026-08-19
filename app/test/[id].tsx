@@ -36,7 +36,7 @@ export default function TestQuestionScreen() {
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [scores, setScores] = useState<Record<WitchTypeId, number>>(loadScores);
+  const [scores, setScores] = useState<Record<WitchTypeId, number>>(() => ({} as Record<WitchTypeId, number>));
 
   const slideAnim = useRef(new Animated.Value(30)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
