@@ -5,6 +5,16 @@ const distDir = path.join(__dirname, '..', 'dist');
 const indexPath = path.join(distDir, 'index.html');
 let html = fs.readFileSync(indexPath, 'utf-8');
 
+// Clean up any duplicate content from previous runs
+html = html.replace(/<meta name="mobile-web-app-capable"[^>]*>/g, '');
+html = html.replace(/<meta name="apple-mobile-web-app-capable"[^>]*>/g, '');
+html = html.replace(/<meta name="apple-mobile-web-app-status-bar-style"[^>]*>/g, '');
+html = html.replace(/<meta name="apple-mobile-web-app-title"[^>]*>/g, '');
+html = html.replace(/<meta name="format-detection"[^>]*>/g, '');
+html = html.replace(/<link rel="manifest"[^>]*>/g, '');
+html = html.replace(/<script>[\s\S]*?\/\/ Only redirect if on a deep link[\s\S]*?<\/script>/g, '');
+html = html.replace(/<script>[\s\S]*?\/\/ Add service worker[\s\S]*?<\/script>/g, '');
+
 const mobileMeta = `
   <meta name="theme-color" content="#0D0618">
   <meta name="description" content="探寻你的魔法本源，找到属于你的女巫之路">
@@ -102,7 +112,11 @@ console.log('✓ Web export optimized for GitHub Pages');
 const publicDir = path.join(__dirname, '..', 'public');
 if (fs.existsSync(publicDir)) {
   fs.readdirSync(publicDir).forEach(file => {
-    fs.copyFileSync(path.join(publicDir, file), path.join(distDir, file));
-    console.log(`  Copied public/${file} to dist/`);
+    const dest = path.join(distDir, file);
+    // Only copy if not already exists or is different
+    if (!fs.existsSync(dest) || fs.readFileSync(dest) !== fs.readFileSync(path.join(publicDir, file))) {
+      fs.copyFileSync(path.join(publicDir, file), dest);
+      console.log(`  Copied public/${file} to dist/`);
+    }
   });
 }
