@@ -79,8 +79,22 @@ html = html.replace(/href="\/_expo/g, 'href="_expo');
 html = html.replace(/src="\/_expo/g, 'src="_expo');
 html = html.replace(/href="\/assets/g, 'href="assets');
 html = html.replace(/src="\/assets/g, 'src="assets');
+// Add SPA fallback for deep linking on GitHub Pages
+const spaFallback = `
+<script>
+(function() {
+  var path = window.location.pathname;
+  // If not on root path, rewrite to index.html
+  if (path !== '/' && !path.includes('_expo') && !path.includes('assets') && !path.includes('.') && !path.includes('favicon')) {
+    window.history.replaceState(null, '', '/');
+  }
+})();
+</script>
+`;
+html = html.replace('</head>', spaFallback + '</head>');
+
 fs.writeFileSync(indexPath, html, 'utf-8');
-console.log('✓ Fixed paths for GitHub Pages subdirectory');
+console.log('✓ Fixed paths and added SPA fallback');
 
 // Copy static files from public to dist
 const publicDir = path.join(__dirname, '..', 'public');
