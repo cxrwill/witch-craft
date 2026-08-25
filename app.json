@@ -32,8 +32,8 @@
       "description": "探寻你的魔法本源，找到属于你的女巫之路",
       "themeColor": "#0D0618",
       "backgroundColor": "#0D0618",
-      "startUrl": "/witch-craft/",
-      "scope": "/witch-craft/",
+      "startUrl": "/",
+      "scope": "/",
       "display": "standalone",
       "orientation": "portrait",
       "lang": "zh-CN"
