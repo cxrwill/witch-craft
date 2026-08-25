@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, Pressable, Animated, Easing, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
