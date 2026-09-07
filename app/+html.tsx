@@ -8,22 +8,16 @@ export default function Root({ children }: PropsWithChildren) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <title>WitchCraft 2.0 FINAL BUILD 20250825</title>
+        <title>WitchCraft - 赛博女巫日记</title>
         <ScrollViewStyleReset />
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
-              // GitHub Pages SPA fallback
-              var searchParams = new URLSearchParams(window.location.search);
-              var redirect = searchParams.get('redirect');
-              if (redirect) {
-                var newPath = redirect;
-                var base = window.location.pathname.match(/\\/witch-craft/);
-                if (base) {
-                  window.history.replaceState({}, '', newPath);
-                } else {
-                  window.history.replaceState({}, '', newPath);
-                }
+              // Fix base URL for GitHub Pages subdirectory
+              var base = '/witch-craft';
+              var currentPath = window.location.pathname;
+              if (currentPath === base + '/' || currentPath === base) {
+                window.history.replaceState({}, '', base + '/');
               }
             })();
           `
